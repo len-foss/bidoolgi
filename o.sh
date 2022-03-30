@@ -87,6 +87,11 @@ function _t {
     odoo -d $DBTEST -c ./.odoorc -u $2 --test-enable --stop-after-init --workers 0
 }
 # Module-specific databases
+function _rtt {
+    DB=`pwd | xargs basename`_$2-tests
+    DBFILTER="^${DB}$"
+    odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER
+}
 function _itt {
     DB=`pwd | xargs basename`_$2-tests
     DBFILTER="^${DB}$"
@@ -95,6 +100,11 @@ function _itt {
         dropdb $DB
     fi
     odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER -i $2 --stop-after-init
+}
+function _itti {
+    DB=`pwd | xargs basename`_$2-tests
+    DBFILTER="^${DB}$"
+    odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER -i $3 --stop-after-init
 }
 function _tt {
     DB=`pwd | xargs basename`_$2-tests

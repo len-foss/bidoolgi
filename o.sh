@@ -62,10 +62,10 @@ function _up {
     click-odoo-update -c .odoorc -d $DB
 }
 function _i {
-    odoo -d `pwd | xargs basename` -c ./.odoorc --db-filter=$DBFILTER -i $1 --stop-after-init
+    odoo -d `pwd | xargs basename` -c ./.odoorc --db-filter=$DBFILTER -i $2 --stop-after-init
 }
 function _u {
-    odoo -d `pwd | xargs basename` -c ./.odoorc --db-filter=$DBFILTER -u $1 --stop-after-init
+    odoo -d `pwd | xargs basename` -c ./.odoorc --db-filter=$DBFILTER -u $2 --stop-after-init
 }
 function _r {
     odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER

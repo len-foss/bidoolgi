@@ -5,6 +5,9 @@ DBFILTER="^${DB}$"
 DBTEST=`pwd | xargs basename`-tests
 DBFILTERTEST="^${DBTEST}$"
 
+function _k {
+    pkill -9 odoo
+}
 function _setup {
     pip install --upgrade pip
     pip install -r requirements.txt -e .

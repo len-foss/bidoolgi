@@ -84,7 +84,7 @@ function _it {
     odoo -d $DBTEST -c ./.odoorc --db-filter=$DBFILTERTEST -i $2 --stop-after-init
 }
 function _t {
-    odoo -d $DBTEST -c ./.odoorc -u $2 --test-enable --stop-after-init --workers 0
+    odoo -d $DBTEST -c ./.odoorc --db-filter=$DBFILTERTEST -u $2 --test-enable --stop-after-init --workers 0
 }
 # Module-specific databases
 function _rtt {
@@ -113,8 +113,7 @@ function _tt {
         echo "Installing first..."
         odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER -i $2 --stop-after-init
     fi
-    echo Testing $2
-    odoo -d $DB -c ./.odoorc -u $2 --test-enable --stop-after-init --workers 0
+    odoo -d $DB -c ./.odoorc --db-filter=$DBFILTERTEST -u $2 --test-enable --stop-after-init --workers 0
 }
 
 

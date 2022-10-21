@@ -116,5 +116,12 @@ function _tt {
     odoo -d $DB -c ./.odoorc --db-filter=$DBFILTERTEST -u $2 --test-enable --stop-after-init --workers 0
 }
 
+# profiling
+function _xprof {
+  # if on python2, install gprof2dot in the venv
+  XPROF="$2.xdot"
+  gprof2dot -f pstats -o $XPROF $2
+  xdot $XPROF
+}
 
 _$1 "$@"

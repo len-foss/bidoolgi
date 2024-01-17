@@ -73,8 +73,14 @@ function _u {
 function _r {
     odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER
 }
+function _rt {
+    odoo -d $DBTEST -c ./.odoorc --db-filter=$DBFILTERTEST
+}
 function _rs {
-    odoo shell -d $DB -c ./.odoorc
+    odoo shell -d $DB -c ./.odoorc -p 9069
+}
+function _rst {
+    odoo shell -d $DBTEST -c ./.odoorc -p 9069
 }
 # Test DB
 function _upt {

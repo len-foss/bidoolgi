@@ -35,7 +35,7 @@ function _clean {
     psql -d $DB -c "INSERT INTO ir_mail_server(active,name,smtp_host,smtp_port,smtp_encryption) VALUES (true,'mailcatcher','localhost',1025,false);"
 }
 function _pu {
-    pip-df sync --update $2 --no-use-pip-constraints
+    pip-df sync --update $2
 }
 function _ga {
     gitaggregate -c gitaggregate.yaml -d src/$2 -p

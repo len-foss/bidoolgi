@@ -19,7 +19,13 @@ function _doc {
     pigeoo -m $2 -p ~/src/$DB/odoo/addons,~/.virtualenvs/$DB/lib/python$V/site-packages/odoo/addons -o $F
     python3 -m webbrowser -t $F/index_module.html 2>&1
 }
+function _prod2test {
+    click-odoo-dropdb $DBTEST
+    click-odoo-copydb $DB $DBTEST
+    _clean 0 $DBTEST
+}
 function _clean {
+    DB=${2:-$DB}
     B=`odoo --version | awk '{print $3;}' | sed 's/\..*//'`
     if (($B<12)) ; then
         psql -d $DB -c "update res_users set login='admin' where id=1;"

@@ -113,7 +113,7 @@ function _tt {
         echo "Installing first..."
         odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER -i $2 --stop-after-init
     fi
-    odoo -d $DB -c ./.odoorc --db-filter=$DBFILTERTEST -u $2 --test-enable --stop-after-init --workers 0
+    odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER -u $2 --test-enable --stop-after-init --workers 0
 }
 
 # profiling

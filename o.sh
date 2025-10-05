@@ -70,11 +70,17 @@ function _dropdbs {
 function _up {
     click-odoo-update -c .odoorc -d $DB
 }
+function _upi {
+    click-odoo-update -c .odoorc -d $DB --i18n-overwrite
+}
 function _i {
     odoo -d `pwd | xargs basename` -c ./.odoorc --db-filter=$DBFILTER -i $2 --stop-after-init
 }
 function _u {
     odoo -d `pwd | xargs basename` -c ./.odoorc --db-filter=$DBFILTER -u $2 --stop-after-init
+}
+function _rd {
+    odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER --dev=all
 }
 function _r {
     odoo -d $DB -c ./.odoorc --db-filter=$DBFILTER
@@ -134,6 +140,116 @@ function _xprof {
   XPROF="$2.xdot"
   gprof2dot -f pstats -o $XPROF $2
   xdot $XPROF
+}
+
+PROJECT_ADDONS_PATH="odoo/addons"
+
+function commit_odoo_addon {
+    local folder="$1"
+    local commit_tag="$2"
+    git add "$PROJECT_ADDONS_PATH/$folder"
+    git commit -m "[$commit_tag] $folder:"
+}
+
+function commit_odoo_addons {
+    local folders="$1"
+    local commit_tag="$2"
+    git add "$PROJECT_ADDONS_PATH"
+    git commit -m "[$commit_tag] $folders:"
+}
+
+function _c {
+    local commit_tag="$2"
+    local changed_folders=()
+    
+    # Determine the correct path to check
+    local addons_path="$PROJECT_ADDONS_PATH"
+    local current_dir=$(pwd)
+    local git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+    
+    # If we're already in the odoo/addons directory, use relative paths
+    if [[ "$current_dir" == "$git_root/$PROJECT_ADDONS_PATH" ]] || [[ "$current_dir" =~ /odoo/addons$ ]]; then
+        # Use --relative to get paths relative to current directory
+        while IFS= read -r folder_name; do
+            if [[ -n "$folder_name" && ! " ${changed_folders[@]} " =~ " ${folder_name} " ]]; then
+                changed_folders+=("$folder_name")
+            fi
+        done < <(git diff --name-only --cached --relative 2>/dev/null | cut -d'/' -f1 | sort -u)
+        
+        # If no staged changes, check unstaged changes
+        if [ ${#changed_folders[@]} -eq 0 ]; then
+            while IFS= read -r folder_name; do
+                if [[ -n "$folder_name" && ! " ${changed_folders[@]} " =~ " ${folder_name} " ]]; then
+                    changed_folders+=("$folder_name")
+                fi
+            done < <(git diff --name-only --relative 2>/dev/null | cut -d'/' -f1 | sort -u)
+        fi
+    else
+        # Running from project root or elsewhere
+        while IFS= read -r folder_name; do
+            if [[ -n "$folder_name" && ! " ${changed_folders[@]} " =~ " ${folder_name} " ]]; then
+                changed_folders+=("$folder_name")
+            fi
+        done < <(git diff --name-only --cached "$addons_path" 2>/dev/null | sed "s|^$addons_path/||" | cut -d'/' -f1 | sort -u)
+
+        # If no staged changes, check unstaged changes
+        if [ ${#changed_folders[@]} -eq 0 ]; then
+            while IFS= read -r folder_name; do
+                if [[ -n "$folder_name" && ! " ${changed_folders[@]} " =~ " ${folder_name} " ]]; then
+                    changed_folders+=("$folder_name")
+                fi
+            done < <(git diff --name-only "$addons_path" 2>/dev/null | sed "s|^$addons_path/||" | cut -d'/' -f1 | sort -u)
+        fi
+    fi
+
+    if [ ${#changed_folders[@]} -eq 0 ]; then
+        echo "No changes found in $PROJECT_ADDONS_PATH"
+        return 0
+    fi
+
+    if [ -z "$commit_tag" ]; then
+        echo "Select commit tag:"
+        echo "1) IMP (Improvement)"
+        echo "2) REF (Refactor)"
+        echo "3) ADD (Add)"
+        echo "4) REM (Remove)"
+        echo "5) FIX (Fix)"
+        echo "6) Custom input"
+        read -p "Enter choice (1-6): " -n 1 -r
+        echo
+
+        case $REPLY in
+            1) commit_tag="IMP" ;;
+            2) commit_tag="REF" ;;
+            3) commit_tag="ADD" ;;
+            4) commit_tag="REM" ;;
+            5) commit_tag="FIX" ;;
+            6)
+                read -p "Enter custom commit tag: " commit_tag
+                ;;
+            *)
+                echo "Invalid choice, using FIX as default"
+                commit_tag="FIX"
+                ;;
+        esac
+    fi
+
+    if [ ${#changed_folders[@]} -eq 1 ]; then
+        echo "All changes belong to folder: ${changed_folders[0]}"
+        commit_odoo_addon "${changed_folders[0]}" "$commit_tag"
+    else
+        echo "Changes found in multiple folders: ${changed_folders[*]}"
+        read -p "Should commits be split? (y/n): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            for folder in "${changed_folders[@]}"; do
+                commit_odoo_addon "$folder" "$commit_tag"
+            done
+        else
+            folders_str=$(IFS=','; echo "${changed_folders[*]}")
+            commit_odoo_addons "$folders_str" "$commit_tag"
+        fi
+    fi
 }
 
 _$1 "$@"
